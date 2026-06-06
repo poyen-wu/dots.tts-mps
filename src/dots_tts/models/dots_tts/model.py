@@ -264,7 +264,9 @@ class DotsTtsModel(nn.Module):
     ) -> None:
         dtype = get_dtype(precision)
         device = next(self.core.parameters()).device
-        use_amp = device.type == "cuda" and dtype in {torch.float16, torch.bfloat16}
+        use_amp = (device.type in {"cuda", "mps"} and dtype in {torch.float16, torch.bfloat16}) or (
+            device.type == "cpu" and dtype == torch.bfloat16
+        )
         with torch.autocast(device_type=device.type, dtype=dtype, enabled=use_amp):
             state = self._allocate_generate_state(
                 max_audio_patch_count=max_audio_patch_count,
@@ -289,8 +291,10 @@ class DotsTtsModel(nn.Module):
     ) -> None:
         dtype = get_dtype(precision)
         device = next(self.core.parameters()).device
-        state_dtype = dtype if device.type == "cuda" else torch.float32
-        use_amp = device.type == "cuda" and dtype in {torch.float16, torch.bfloat16}
+        state_dtype = dtype if device.type in {"cuda", "mps", "cpu"} else torch.float32
+        use_amp = (device.type in {"cuda", "mps"} and dtype in {torch.float16, torch.bfloat16}) or (
+            device.type == "cpu" and dtype == torch.bfloat16
+        )
         with torch.autocast(device_type=device.type, dtype=dtype, enabled=use_amp):
             state_audio_patch_count = self._resolve_state_audio_patch_count(
                 max_audio_patch_count
@@ -405,7 +409,7 @@ class DotsTtsModel(nn.Module):
         device: torch.device,
         dtype: torch.dtype,
     ) -> _GenerateState:
-        state_dtype = dtype if device.type == "cuda" else torch.float32
+        state_dtype = dtype if device.type in {"cuda", "mps", "cpu"} else torch.float32
         state_audio_patch_count = self._resolve_state_audio_patch_count(
             max_audio_patch_count
         )
@@ -1607,11 +1611,13 @@ class DotsTtsModel(nn.Module):
         num_steps: int,
         guidance_scale: float,
         speaker_scale: float = 1.5,
-        eos_threshold: float = 0.8,
+        eos_threshold: float = 0.999,
     ) -> Iterator[torch.Tensor]:
         dtype = get_dtype(precision)
         device = next(self.core.parameters()).device
-        use_amp = device.type == "cuda" and dtype in {torch.float16, torch.bfloat16}
+        use_amp = (device.type in {"cuda", "mps"} and dtype in {torch.float16, torch.bfloat16}) or (
+            device.type == "cpu" and dtype == torch.bfloat16
+        )
         with torch.autocast(device_type=device.type, dtype=dtype, enabled=use_amp):
             generation_schedule: torch.Tensor = data["generation_schedule"]
             if generation_schedule.size(0) != 1:
@@ -1787,7 +1793,7 @@ class DotsTtsModel(nn.Module):
         num_steps: int,
         guidance_scale: float,
         speaker_scale: float = 1.5,
-        eos_threshold: float = 0.8,
+        eos_threshold: float = 0.999,
     ) -> Iterator[torch.Tensor]:
         stream_state = self._init_vocoder_stream_state()
         for latent_patch in self._generate_latents_stream(
@@ -1820,6 +1826,7 @@ class DotsTtsModel(nn.Module):
         num_steps: int,
         guidance_scale: float,
         speaker_scale: float = 1.5,
+        eos_threshold: float = 0.999,
     ) -> torch.Tensor:
         latent_patches = list(
             self._generate_latents_stream(
@@ -1829,6 +1836,7 @@ class DotsTtsModel(nn.Module):
                 num_steps=num_steps,
                 guidance_scale=guidance_scale,
                 speaker_scale=speaker_scale,
+                eos_threshold=eos_threshold,
             )
         )
         logger.info(

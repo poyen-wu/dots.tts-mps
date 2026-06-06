@@ -7,7 +7,7 @@ name = "dots.tts"
 version = "0.1.0"
 description = "dots.tts: a fully continuous autoregressive TTS system with self-corrective alignment and CFG-aware MeanFlow distillation."
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+#requires-python = ">=3.10,<3.13"
 license = { text = "Apache-2.0" }
 authors = [{ name = "dots.tts Team" }]
 keywords = [
@@ -52,7 +52,6 @@ dependencies = [
     "torchdiffeq",
     "tqdm",
     "lingua-language-detector",
-    "WeTextProcessing",
 ]
 
 [project.optional-dependencies]

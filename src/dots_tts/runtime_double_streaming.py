@@ -23,7 +23,7 @@ class DoubleStreamingSession:
         num_steps: int = 10,
         guidance_scale: float = 1.2,
         speaker_scale: float = 1.5,
-        eos_threshold: float = 0.8,
+        eos_threshold: float = 0.999,
         initial_silence_audio_tokens: int = 1,
     ) -> None:
         normalized_prompt_text = runtime._process_prompt_text(prompt_text)
@@ -45,7 +45,7 @@ class DoubleStreamingSession:
         )
 
         self._dtype = get_dtype(runtime.precision)
-        self._use_amp = self.device.type == "cuda" and self._dtype in {
+        self._use_amp = self.device.type in {"cuda", "mps"} and self._dtype in {
             torch.float16,
             torch.bfloat16,
         }
@@ -336,7 +336,7 @@ class DotsTtsRuntimeDoubleStreaming(DotsTtsRuntime):
         num_steps: int = 10,
         guidance_scale: float = 1.2,
         speaker_scale: float = 1.5,
-        eos_threshold: float = 0.8,
+        eos_threshold: float = 0.999,
         initial_silence_audio_tokens: int = 1,
     ) -> DoubleStreamingSession:
         return DoubleStreamingSession(

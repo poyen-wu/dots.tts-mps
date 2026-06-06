@@ -56,7 +56,12 @@ conda activate dots_tts
 Then install from source:
 
 ```bash
+brew install openfst
+export CPLUS_INCLUDE_PATH="/opt/homebrew/include:$CPLUS_INCLUDE_PATH"
+export LIBRARY_PATH="/opt/homebrew/lib:$LIBRARY_PATH"
 python -m pip install --upgrade pip
+python -m pip install WeTextProcessing --no-deps
+python -m pip install pynini importlib-resources
 python -m pip install -e . -c constraints/recommended.txt
 ```
 

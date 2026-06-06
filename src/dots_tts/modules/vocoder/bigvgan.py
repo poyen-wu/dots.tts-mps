@@ -836,6 +836,7 @@ class AudioVAE(nn.Module):
         return {"sample": self.inference_from_latents(latents)}
 
     @torch.autocast(enabled=False, device_type="cuda")
+    @torch.autocast(enabled=False, device_type="mps")
     def extract_latents(self, x, do_sample=False):
         x = x.float()
         x = self.audio_encoder(x)

@@ -145,6 +145,7 @@ def rotate_half(x):
 
 
 @torch.autocast(enabled=False, device_type="cuda")
+@torch.autocast(enabled=False, device_type="mps")
 def apply_rotary_pos_emb(pos, t):
     if pos.dim() == 3:
         pos = pos.unsqueeze(1)
@@ -168,6 +169,7 @@ class RotaryEmbedding(nn.Module):
         return self
 
     @torch.autocast(enabled=False, device_type="cuda")
+    @torch.autocast(enabled=False, device_type="mps")
     def forward(self, t):
         inv_freq = self.inv_freq
         if inv_freq.device != t.device:
